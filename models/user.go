@@ -3,9 +3,9 @@ package models
 import "go.mongodb.org/mongo-driver/mongo"
 
 type User struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Name     string `bson:"name" json:"name"`
+	Email    string `bson:"email" json:"email"`
+	Password string `bson:"password" json:"password"`
 }
 type MongoInstance struct {
 	Client *mongo.Client

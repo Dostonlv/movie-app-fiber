@@ -5,6 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"movie/database"
 	"movie/models"
+	"movie/pkg/utils"
 )
 
 func User(c *fiber.Ctx) error {
@@ -16,18 +17,36 @@ func User(c *fiber.Ctx) error {
 		return c.Status(400).SendString(err.Error())
 	}
 
+	hashedPassword, err := utils.Hash(user.Password)
+	if err != nil {
+		return c.Status(500).SendString(err.Error())
+	}
+
+	user.Name = utils.TrimSpace(user.Name)
+	user.Email = utils.TrimSpace(user.Email)
+	user.Password = hashedPassword
+
+	if user.Name == "" || user.Email == "" || user.Password == "" {
+		return c.Status(400).SendString("name, email, password are required")
+	}
+
+	filter := bson.D{{Key: "email", Value: user.Email}}
+	var result models.User
+	err = collection.FindOne(c.Context(), filter).Decode(&result)
+	if err == nil {
+		return c.Status(401).SendString("email already in use")
+	}
+
 	insertionResult, err := collection.InsertOne(c.Context(), user)
 	if err != nil {
 		return c.Status(500).SendString(err.Error())
 	}
-	filter := bson.D{{Key: "_id", Value: insertionResult.InsertedID}}
+	filter = bson.D{{Key: "_id", Value: insertionResult.InsertedID}}
 	createdRecord := collection.FindOne(c.Context(), filter)
 
-	// decode the Mongo record into Employee
-	createdEmployee := &models.User{}
-	createdRecord.Decode(createdEmployee)
+	createdUser := &models.User{}
+	createdRecord.Decode(createdUser)
 
-	// return the created Employee in JSON format
-	return c.Status(201).JSON(createdEmployee)
+	return c.Status(201).JSON(createdUser)
 
 }

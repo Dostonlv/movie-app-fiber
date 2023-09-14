@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"movie/config"
@@ -40,6 +41,12 @@ func InitDB() models.MongoInstance {
 		Db:     mongoConn.Database(cfg.MongoDatabase),
 	}
 
+	// email is unique
+	index := mongo.IndexModel{
+		Keys:    bson.M{"email": 1},
+		Options: options.Index().SetUnique(true),
+	}
+	_, err = connDB.Collection("user").Indexes().CreateOne(context.Background(), index)
 	log.Info("Connected to MongoDB", logger.Any("database: ", connDB.Name()))
 	return MG
 }
