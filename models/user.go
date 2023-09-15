@@ -1,13 +1,16 @@
 package models
 
-import "go.mongodb.org/mongo-driver/mongo"
+import (
+	_ "github.com/go-playground/validator/v10"
+)
 
 type User struct {
-	Name     string `bson:"name" json:"name"`
-	Email    string `bson:"email" json:"email"`
-	Password string `bson:"password" json:"password"`
+	Name     string `validate:"required" bson:"name" json:"name"`
+	Email    string `validate:"required,email" bson:"email" json:"email"`
+	Password string `validate:"required,min=8,max=20" bson:"password" json:"password"`
 }
-type MongoInstance struct {
-	Client *mongo.Client
-	Db     *mongo.Database
+
+type SignIn struct {
+	Email    string `validate:"required,email" bson:"email" json:"email"`
+	Password string `validate:"required,min=8,max=20" bson:"password" json:"password"`
 }

@@ -26,10 +26,6 @@ func User(c *fiber.Ctx) error {
 	user.Email = utils.TrimSpace(user.Email)
 	user.Password = hashedPassword
 
-	if user.Name == "" || user.Email == "" || user.Password == "" {
-		return c.Status(400).SendString("name, email, password are required")
-	}
-
 	filter := bson.D{{Key: "email", Value: user.Email}}
 	var result models.User
 	err = collection.FindOne(c.Context(), filter).Decode(&result)
